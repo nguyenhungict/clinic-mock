@@ -1,0 +1,59 @@
+# Clinic mock trên EC2 — Docker Compose + Caddy (TLS) — chạy từ thư mục deploy/ của repo này.
+#
+# Image được build từ Dockerfile gốc ở repo root, KHÔNG sửa. Dockerfile chỉ COPY
+# pyproject.toml, uv.lock, README.md và src/ nên thư mục deploy/ này không bao giờ
+# lọt vào image -> digest image không phụ thuộc vào các file ở đây (contract §4.2.1).
+# Caddy chỉ terminate TLS và forward nguyên vẹn: không rewrite path/header/body,
+# không cache, không nén.
+services:
+  clinic-mock:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    # Khi chương trình phát hành image chính thức: bỏ khối `build:` ở trên và pin theo digest:
+    # image: <registry>/clinic-mock@sha256:<digest-công-bố-trên-#residency-batch03>
+    container_name: clinic-mock
+    env_file: .env
+    environment:
+      APP_HOST: 0.0.0.0
+      APP_PORT: "8000"
+    expose:
+      - "8000"            # chỉ trong mạng compose; KHÔNG publish ra host
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=2).status==200 else 1)\""]
+      interval: 15s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: caddy
+    env_file: .env      # dùng MOCK_DOMAIN + ACME_EMAIL
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"   # HTTP/3
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data        # chứng chỉ Let's Encrypt — giữ qua các lần restart
+      - caddy_config:/config
+    depends_on:
+      clinic-mock:
+        condition: service_healthy
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+volumes:
+  caddy_data:
+  caddy_config:

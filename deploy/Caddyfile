@@ -1,0 +1,16 @@
+# Reverse proxy thuần: TLS tự động (Let's Encrypt), forward nguyên vẹn mọi path
+# (/health, /docs, /v1/*, /_harness/*), mọi header (Authorization, If-Match,
+# Idempotency-Key) và body. Không encode, không cache, không rewrite — hành vi mock
+# nhìn từ harness giống hệt khi gọi thẳng vào container (contract §4.2.1).
+{
+	email {$ACME_EMAIL}
+}
+
+{$MOCK_DOMAIN} {
+	reverse_proxy clinic-mock:8000
+
+	log {
+		output stdout
+		format json
+	}
+}
