@@ -11,6 +11,15 @@
       }
     }
   ],
+  "slots": [
+    {
+      "slot_id": "slot_b501",
+      "clinic_id": "cl_vinmec",
+      "start_time": "2026-10-15T10:30:00+07:00",
+      "end_time": "2026-10-15T11:00:00+07:00",
+      "provider_id": "pr_vinmec_1"
+    }
+  ],
   "appointments": [
     {
       "appointment_id": "apt_00418",

@@ -17,6 +17,14 @@ EXTRA = [
     }
 ]
 
+SLOT = {
+    "slot_id": "slot_x9002",
+    "clinic_id": "cl_vinmec",
+    "start_time": "2026-10-15T10:30:00+07:00",
+    "end_time": "2026-10-15T11:00:00+07:00",
+    "provider_id": "pr_vinmec_1",
+}
+
 
 def test_extra_patients_seeded_from_file(tmp_path, monkeypatch):
     f = tmp_path / "patients.json"
@@ -37,7 +45,7 @@ def test_missing_extra_patients_file_is_ignored(tmp_path, monkeypatch):
     assert "pt_9001" not in db.patients
 
 
-def test_extra_appointments_seeded_from_file(tmp_path, monkeypatch, client):
+def test_extra_slots_and_appointments_seeded_from_file(tmp_path, monkeypatch, client):
     appt = {
         "appointment_id": "apt_09001",
         "slot_id": "slot_x9001",
@@ -53,7 +61,10 @@ def test_extra_appointments_seeded_from_file(tmp_path, monkeypatch, client):
     }
     f = tmp_path / "extra.json"
     f.write_text(
-        json.dumps({"patients": EXTRA, "appointments": [appt]}, ensure_ascii=False),
+        json.dumps(
+            {"patients": EXTRA, "slots": [SLOT], "appointments": [appt]},
+            ensure_ascii=False,
+        ),
         encoding="utf-8",
     )
     monkeypatch.setattr(settings.mock_auth, "EXTRA_PATIENTS_FILE", str(f))
@@ -63,3 +74,4 @@ def test_extra_appointments_seeded_from_file(tmp_path, monkeypatch, client):
     )
     assert r.status_code == 200
     assert r.json()["patient"]["patient_id"] == "pt_9001"
+    assert db.slots["slot_x9002"].tenant_id == CANONICAL_TENANT

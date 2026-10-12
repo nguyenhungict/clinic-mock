@@ -430,19 +430,20 @@ def _seed_canonical_patients() -> None:
 def _load_extra_fixtures() -> dict[str, list[dict]]:
     """Read `MOCK_EXTRA_PATIENTS_FILE` if set; missing file means no extras.
 
-    The file is either `{"patients": [...], "appointments": [...]}` or a bare
-    list of patients. Rows share the shape of the CANONICAL_* fixtures.
+    The file is either `{"patients": [...], "slots": [...], "appointments": [...]}`
+    or a bare list of patients. Rows share the shape of the CANONICAL_* fixtures.
     """
     from clinic_mock.config import settings
 
     path = settings.mock_auth.EXTRA_PATIENTS_FILE
     if not path or not Path(path).is_file():
-        return {"patients": [], "appointments": []}
+        return {"patients": [], "slots": [], "appointments": []}
     data = json.loads(Path(path).read_text(encoding="utf-8"))
     if isinstance(data, list):
         data = {"patients": data}
     return {
         "patients": data.get("patients", []),
+        "slots": data.get("slots", []),
         "appointments": data.get("appointments", []),
     }
 
@@ -459,8 +460,8 @@ def _seed_extra_patients(fixtures: list[dict]) -> None:
         )
 
 
-def _seed_canonical_slots() -> None:
-    for f in CANONICAL_SLOT_FIXTURES:
+def _seed_canonical_slots(fixtures: list[dict] = CANONICAL_SLOT_FIXTURES) -> None:
+    for f in fixtures:
         db.slots[f["slot_id"]] = Slot(
             slot_id=f["slot_id"],
             tenant_id=CANONICAL_TENANT,
@@ -512,6 +513,7 @@ def seed_default() -> None:
     _seed_canonical_patients()
     _seed_extra_patients(extra["patients"])
     _seed_canonical_slots()
+    _seed_canonical_slots(extra["slots"])
     _seed_canonical_appointments()
     _seed_canonical_appointments(extra["appointments"])
 
