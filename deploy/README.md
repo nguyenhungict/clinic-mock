@@ -217,6 +217,17 @@ PULL=1 ./deploy.sh
 
 Downtime 10–20 giây khi container mới thay container cũ. Báo team trước.
 
+### Dữ liệu demo
+
+Bệnh nhân demo của team (thông tin thật) nằm ở `deploy/data/demo_patients.json`, **không có trong
+git** (`deploy/.gitignore`) và **không có trong image** (`.dockerignore`). Compose mount thư mục
+`deploy/data/` vào container và mock nạp file này lúc seed (`MOCK_EXTRA_PATIENTS_FILE`). Mẫu định
+dạng: `deploy/demo_patients.example.json`. Thiếu file thì mock chạy bình thường, chỉ không có các
+bệnh nhân này.
+
+Sửa data: chép file mới lên server rồi `docker compose restart clinic-mock` (không cần build lại).
+File phải đọc được bởi user trong container (uid 10001), nên để quyền `644`, không `chmod 600`.
+
 ### Đổi sang image chính thức (khi `#residency-batch03` công bố)
 
 1. Trong `docker-compose.yml`, service `clinic-mock`: xóa khối `build:`, thêm

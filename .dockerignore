@@ -13,3 +13,6 @@ dist/
 .vscode/
 *.log
 .DS_Store
+
+# Dữ liệu bệnh nhân thật — chỉ mount lúc chạy, không đóng vào image
+deploy/data/

@@ -17,6 +17,10 @@ services:
     environment:
       APP_HOST: 0.0.0.0
       APP_PORT: "8000"
+      MOCK_EXTRA_PATIENTS_FILE: /app/data/demo_patients.json
+    volumes:
+      # Bệnh nhân demo (data thật, nằm ngoài git và ngoài image) — xem README mục "Dữ liệu demo".
+      - ./data:/app/data:ro
     expose:
       - "8000"            # chỉ trong mạng compose; KHÔNG publish ra host
     restart: unless-stopped

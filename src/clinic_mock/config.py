@@ -48,6 +48,9 @@ class MockAuthSettings(BaseSettings):
     )
 
     API_KEYS: str = "sk_dev_demo"
+    # Optional JSON file of extra canonical patients (same shape as
+    # CANONICAL_PATIENT_FIXTURES). Kept out of git — see deploy/README.md.
+    EXTRA_PATIENTS_FILE: str = ""
 
 
 class Settings:

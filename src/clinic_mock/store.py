@@ -10,8 +10,10 @@ keep the existing suffix trick so isolation tests still see distinct rows.
 
 from __future__ import annotations
 
+import json
 import uuid
 from datetime import UTC, datetime
+from pathlib import Path
 
 from clinic_mock.auth import derive_tenant_id
 from clinic_mock.schemas import (
@@ -346,42 +348,6 @@ CANONICAL_PATIENT_FIXTURES = [
         "dob": "1978-03-14",
         "verify": {"full_name": "Nguyễn Văn A", "dob": "1978-03-14"},
     },
-    # Demo records do team thêm: hồ sơ thường, không edge case.
-    {
-        "id": "pt_3401",
-        "display_name": "N. H. H.",
-        "phone": "0901234501",
-        "dob": "2004-05-16",
-        "verify": {"full_name": "Ngô Huy Hoàn", "dob": "2004-05-16"},
-    },
-    {
-        "id": "pt_3402",
-        "display_name": "N. D. H.",
-        "phone": "0901234502",
-        "dob": "2004-01-18",
-        "verify": {"full_name": "Nguyễn Duy Hưng", "dob": "2004-01-18"},
-    },
-    {
-        "id": "pt_3403",
-        "display_name": "L. Q. H.",
-        "phone": "0901234503",
-        "dob": "2002-10-02",
-        "verify": {"full_name": "Lê Quang Huy", "dob": "2002-10-02"},
-    },
-    {
-        "id": "pt_3404",
-        "display_name": "N. T. T. H.",
-        "phone": "0901234504",
-        "dob": "2004-03-05",
-        "verify": {"full_name": "Nguyễn Thị Thanh Hiền", "dob": "2004-03-05"},
-    },
-    {
-        "id": "pt_3405",
-        "display_name": "N. T. D.",
-        "phone": "0901234505",
-        "dob": "2005-11-27",
-        "verify": {"full_name": "Nguyễn Tuấn Dương", "dob": "2005-11-27"},
-    },
 ]
 
 CANONICAL_SLOT_FIXTURES = [
@@ -461,6 +427,28 @@ def _seed_canonical_patients() -> None:
         )
 
 
+def _load_extra_patients() -> list[dict]:
+    """Read `MOCK_EXTRA_PATIENTS_FILE` if set; missing file means no extras."""
+    from clinic_mock.config import settings
+
+    path = settings.mock_auth.EXTRA_PATIENTS_FILE
+    if not path or not Path(path).is_file():
+        return []
+    return json.loads(Path(path).read_text(encoding="utf-8"))
+
+
+def _seed_extra_patients() -> None:
+    for f in _load_extra_patients():
+        db.patients[f["id"]] = Patient(
+            patient_id=f["id"],
+            tenant_id=CANONICAL_TENANT,
+            display_name=f["display_name"],
+            phone=f["phone"],
+            dob=f["dob"],
+            verify=PatientVerify(**f["verify"]),
+        )
+
+
 def _seed_canonical_slots() -> None:
     for f in CANONICAL_SLOT_FIXTURES:
         db.slots[f["slot_id"]] = Slot(
@@ -509,6 +497,7 @@ def seed_default() -> None:
     tenants = _seed_tenants()
 
     _seed_canonical_patients()
+    _seed_extra_patients()
     _seed_canonical_slots()
     _seed_canonical_appointments()
 
