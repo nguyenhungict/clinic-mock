@@ -35,3 +35,31 @@ def test_missing_extra_patients_file_is_ignored(tmp_path, monkeypatch):
     seed_default()
     assert "pt_3391" in db.patients
     assert "pt_9001" not in db.patients
+
+
+def test_extra_appointments_seeded_from_file(tmp_path, monkeypatch, client):
+    appt = {
+        "appointment_id": "apt_09001",
+        "slot_id": "slot_x9001",
+        "provider_id": "pr_vinmec_1",
+        "status": "SCHEDULED",
+        "clinic_id": "cl_vinmec",
+        "starts_at": "2026-10-15T08:00:00+07:00",
+        "ends_at": "2026-10-15T08:30:00+07:00",
+        "department": "Nội tổng quát",
+        "patient_id": "pt_9001",
+        "attempt_count": 0,
+        "version": 1,
+    }
+    f = tmp_path / "extra.json"
+    f.write_text(
+        json.dumps({"patients": EXTRA, "appointments": [appt]}, ensure_ascii=False),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(settings.mock_auth, "EXTRA_PATIENTS_FILE", str(f))
+    seed_default()
+    r = client.get(
+        "/v1/appointments/apt_09001", headers={"Authorization": "Bearer sk_test_a"}
+    )
+    assert r.status_code == 200
+    assert r.json()["patient"]["patient_id"] == "pt_9001"

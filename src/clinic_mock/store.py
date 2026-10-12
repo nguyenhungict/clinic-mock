@@ -427,18 +427,28 @@ def _seed_canonical_patients() -> None:
         )
 
 
-def _load_extra_patients() -> list[dict]:
-    """Read `MOCK_EXTRA_PATIENTS_FILE` if set; missing file means no extras."""
+def _load_extra_fixtures() -> dict[str, list[dict]]:
+    """Read `MOCK_EXTRA_PATIENTS_FILE` if set; missing file means no extras.
+
+    The file is either `{"patients": [...], "appointments": [...]}` or a bare
+    list of patients. Rows share the shape of the CANONICAL_* fixtures.
+    """
     from clinic_mock.config import settings
 
     path = settings.mock_auth.EXTRA_PATIENTS_FILE
     if not path or not Path(path).is_file():
-        return []
-    return json.loads(Path(path).read_text(encoding="utf-8"))
+        return {"patients": [], "appointments": []}
+    data = json.loads(Path(path).read_text(encoding="utf-8"))
+    if isinstance(data, list):
+        data = {"patients": data}
+    return {
+        "patients": data.get("patients", []),
+        "appointments": data.get("appointments", []),
+    }
 
 
-def _seed_extra_patients() -> None:
-    for f in _load_extra_patients():
+def _seed_extra_patients(fixtures: list[dict]) -> None:
+    for f in fixtures:
         db.patients[f["id"]] = Patient(
             patient_id=f["id"],
             tenant_id=CANONICAL_TENANT,
@@ -461,8 +471,10 @@ def _seed_canonical_slots() -> None:
         )
 
 
-def _seed_canonical_appointments() -> None:
-    for f in CANONICAL_APPOINTMENT_FIXTURES:
+def _seed_canonical_appointments(
+    fixtures: list[dict] = CANONICAL_APPOINTMENT_FIXTURES,
+) -> None:
+    for f in fixtures:
         patient = db.patients[f["patient_id"]]
         appt = Appointment(
             appointment_id=f["appointment_id"],
@@ -496,10 +508,12 @@ def seed_default() -> None:
     db.system_clock_offset_sec = 0
     tenants = _seed_tenants()
 
+    extra = _load_extra_fixtures()
     _seed_canonical_patients()
-    _seed_extra_patients()
+    _seed_extra_patients(extra["patients"])
     _seed_canonical_slots()
     _seed_canonical_appointments()
+    _seed_canonical_appointments(extra["appointments"])
 
     for tenant in tenants:
         suffix = _scope_suffix(tenant)

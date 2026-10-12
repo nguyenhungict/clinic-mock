@@ -221,7 +221,8 @@ Downtime 10–20 giây khi container mới thay container cũ. Báo team trướ
 
 Bệnh nhân demo của team (thông tin thật) nằm ở `deploy/data/demo_patients.json`, **không có trong
 git** (`deploy/.gitignore`) và **không có trong image** (`.dockerignore`). Compose mount thư mục
-`deploy/data/` vào container và mock nạp file này lúc seed (`MOCK_EXTRA_PATIENTS_FILE`). Mẫu định
+`deploy/data/` vào container và mock nạp file này lúc seed (`MOCK_EXTRA_PATIENTS_FILE`): bệnh nhân
+và lịch hẹn của họ (mỗi bệnh nhân cần một lịch hẹn thì mới hiện trong danh sách lịch hẹn). Mẫu định
 dạng: `deploy/demo_patients.example.json`. Thiếu file thì mock chạy bình thường, chỉ không có các
 bệnh nhân này.
 

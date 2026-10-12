@@ -1,9 +1,29 @@
-[
-  {
-    "id": "pt_3401",
-    "display_name": "T. V. B.",
-    "phone": "0900000001",
-    "dob": "2000-01-31",
-    "verify": {"full_name": "Trần Văn B", "dob": "2000-01-31"}
-  }
-]
+{
+  "patients": [
+    {
+      "id": "pt_3401",
+      "display_name": "T. V. B.",
+      "phone": "0900000001",
+      "dob": "2000-01-31",
+      "verify": {
+        "full_name": "Trần Văn B",
+        "dob": "2000-01-31"
+      }
+    }
+  ],
+  "appointments": [
+    {
+      "appointment_id": "apt_00418",
+      "slot_id": "slot_a418",
+      "provider_id": "pr_vinmec_1",
+      "status": "SCHEDULED",
+      "clinic_id": "cl_vinmec",
+      "starts_at": "2026-10-15T08:00:00+07:00",
+      "ends_at": "2026-10-15T08:30:00+07:00",
+      "department": "Nội tổng quát",
+      "patient_id": "pt_3401",
+      "attempt_count": 0,
+      "version": 1
+    }
+  ]
+}
